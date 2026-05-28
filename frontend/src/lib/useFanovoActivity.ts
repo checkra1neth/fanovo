@@ -124,12 +124,12 @@ function buildEventDefs(): EventDef[] {
   return [
     { address: CONTRACTS.worldCupHook, event: findEvent(worldCupHookAbi, "Buy"), kind: "buy" },
     { address: CONTRACTS.worldCupHook, event: findEvent(worldCupHookAbi, "Sell"), kind: "sell" },
+    // PackMinted from WorldCupHook — includes user + country + burn info
     { address: CONTRACTS.worldCupHook, event: findEvent(worldCupHookAbi, "PackMinted"), kind: "pack" },
-    { address: CONTRACTS.packOpener, event: findEvent(packOpenerAbi, "PackRevealed"), kind: "pack" },
     { address: CONTRACTS.playerHook, event: findEvent(playerHookAbi, "Buy"), kind: "playerBuy" },
     { address: CONTRACTS.playerHook, event: findEvent(playerHookAbi, "Sell"), kind: "playerSell" },
+    // PackMinted from PlayerHook — includes user + player + burn info
     { address: CONTRACTS.playerHook, event: findEvent(playerHookAbi, "PackMinted"), kind: "playerPack" },
-    { address: CONTRACTS.playerPackOpener, event: findEvent(playerPackOpenerAbi, "PlayerPackRevealed"), kind: "playerPack" },
   ];
 }
 
@@ -273,6 +273,28 @@ export function useFanovoActivity() {
             .filter((d) => d.event)
             .map((def) => fetchLogsChunked(client!, def, from, tip))
         );
+
+        // Collect unique block numbers for timestamp fetching
+        const blockNumbers = new Set<bigint>();
+        for (const logs of allLogs) {
+          for (const l of logs) {
+            blockNumbers.add(l.blockNumber);
+          }
+        }
+
+        // Fetch timestamps for all blocks in parallel
+        const blockTimestamps = new Map<bigint, number>();
+        await Promise.all(
+          Array.from(blockNumbers).map(async (bn) => {
+            try {
+              const block = await client!.getBlock({ blockNumber: bn });
+              blockTimestamps.set(bn, Number(block.timestamp));
+            } catch {
+              blockTimestamps.set(bn, Math.floor(Date.now() / 1000));
+            }
+          })
+        );
+
         const newRows: ActivityRow[] = [];
         for (let i = 0; i < defs.length; i++) {
           if (cancelled) return;
@@ -281,6 +303,7 @@ export function useFanovoActivity() {
           const logs = allLogs[i];
           for (const l of logs) {
             const row = rowFromLog(def.kind, l);
+            row.timestamp = blockTimestamps.get(row.block);
             if (seenRef.current.has(row.key)) continue;
             seenRef.current.add(row.key);
             newRows.push(row);

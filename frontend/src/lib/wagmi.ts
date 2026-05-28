@@ -18,6 +18,11 @@ export function explorerAddressUrl(address: string): string {
   return `https://www.okx.com/web3/explorer/xlayer/address/${address}`;
 }
 
+// Block explorer URL for a transaction on X Layer Mainnet.
+export function explorerTxUrl(txHash: string): string {
+  return `https://www.okx.com/web3/explorer/xlayer/tx/${txHash}`;
+}
+
 export const config = createConfig({
   chains: [xlayer],
   transports: {

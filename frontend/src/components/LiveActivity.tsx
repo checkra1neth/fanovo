@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { formatEther } from "viem";
 import { shortAddress } from "@/lib/contracts";
-import { explorerAddressUrl } from "@/lib/wagmi";
+import { explorerTxUrl } from "@/lib/wagmi";
 import type { ActivityRow } from "@/lib/useFanovoActivity";
 
 type Filter = "all" | "burns" | "players" | "packs";
@@ -153,8 +153,15 @@ function ActivityRowView({
   const flag = player ? player.countryFlag : country?.flag ?? "🌐";
   const counterSymbol = player ? player.countrySymbol : "FANOVO";
 
+  const timeAgo = row.timestamp ? formatTimeAgo(row.timestamp) : "";
+
   return (
-    <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 items-center text-sm">
+    <a
+      href={explorerTxUrl(row.txHash)}
+      target="_blank"
+      rel="noreferrer"
+      className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 items-center text-sm hover:bg-white/[0.02] transition-colors"
+    >
       <div className="flex items-center gap-3">
         <div className={`w-1 h-8 rounded-full ${barColor}`} />
         <span className="text-lg leading-none">{flag}</span>
@@ -164,25 +171,20 @@ function ActivityRowView({
             <span className="text-[10px] text-[#555] font-mono">{symbol}</span>
           </p>
           <p className="text-[11px] uppercase tracking-wider">
-            {isBuy && <span className="text-[#34d399]">BUY</span>}
-            {isSell && <span className="text-[#ff2d55]">SELL</span>}
-            {isPack && <span className="text-[#f59e0b]">PACK REVEAL</span>}
-            {isPBuy && <span className="text-[#34d399]">PLAYER BUY</span>}
-            {isPSell && <span className="text-[#ff2d55]">PLAYER SELL</span>}
-            {isPPack && <span className="text-[#f59e0b]">PLAYER PACK</span>}
+            {isBuy && <span className="text-[#34d399]">BUY {timeAgo}</span>}
+            {isSell && <span className="text-[#ff2d55]">SELL {timeAgo}</span>}
+            {isPack && <span className="text-[#f59e0b]">PACK REVEAL {timeAgo}</span>}
+            {isPBuy && <span className="text-[#34d399]">BUY {timeAgo}</span>}
+            {isPSell && <span className="text-[#ff2d55]">SELL {timeAgo}</span>}
+            {isPPack && <span className="text-[#f59e0b]">PACK REVEAL {timeAgo}</span>}
           </p>
         </div>
       </div>
 
       <div className="text-right">
-        <a
-          href={explorerAddressUrl(row.user)}
-          target="_blank"
-          rel="noreferrer"
-          className="font-mono text-[11px] text-[#888] hover:text-white"
-        >
+        <span className="font-mono text-[11px] text-[#888]">
           {shortAddress(row.user, 4, 4)}
-        </a>
+        </span>
       </div>
 
       <div className="text-right font-mono text-xs leading-tight">
@@ -247,7 +249,7 @@ function ActivityRowView({
           </p>
         )}
       </div>
-    </div>
+    </a>
   );
 }
 
@@ -291,4 +293,14 @@ function fmt(v?: bigint): string {
   if (n >= 1) return n.toFixed(3);
   if (n >= 0.0001) return n.toFixed(4);
   return n.toExponential(2);
+}
+
+function formatTimeAgo(timestamp: number): string {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - timestamp;
+  if (diff < 0) return "now";
+  if (diff < 60) return `${diff}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
 }
