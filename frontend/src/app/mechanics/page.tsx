@@ -2,6 +2,8 @@
 
 import { Header } from "@/components/Header";
 import { useProtocolConstants } from "@/components/ProtocolConstants";
+import { CONTRACTS, shortAddress } from "@/lib/contracts";
+import { explorerAddressUrl } from "@/lib/wagmi";
 
 export default function MechanicsPage() {
   const { maxSupply, maxPacks, asymptote, feePct, loading } = useProtocolConstants();
@@ -246,7 +248,18 @@ export default function MechanicsPage() {
 
         {/* Footer */}
         <div className="border-t border-white/[0.06] pt-6 text-center space-y-1">
-          <p className="text-xs text-[#555]">FANOVO contract 0x66ec…C9B4 • X Layer Testnet • 2026</p>
+          <p className="text-xs text-[#555]">
+            FANOVO contract{" "}
+            <a
+              href={explorerAddressUrl(CONTRACTS.fanovoToken)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-[#888] hover:text-white"
+            >
+              {shortAddress(CONTRACTS.fanovoToken)}
+            </a>
+            {" "}• X Layer Mainnet • 2026
+          </p>
         </div>
       </main>
     </div>

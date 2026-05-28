@@ -1,6 +1,8 @@
 import { Header } from "@/components/Header";
 import { HomeStatsBar } from "@/components/HomeStats";
 import { HomePhases } from "@/components/HomePhases";
+import { CONTRACTS, shortAddress } from "@/lib/contracts";
+import { explorerAddressUrl } from "@/lib/wagmi";
 
 export default function Home() {
   return (
@@ -51,10 +53,21 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="border-t border-white/[0.08] py-6 flex items-center justify-between text-xs text-[#555]">
-          <span>FANOVO contract 0x66ec…C9B4 • X Layer Testnet • 2026</span>
+          <span>
+            FANOVO contract{" "}
+            <a
+              href={explorerAddressUrl(CONTRACTS.fanovoToken)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-[#888] hover:text-white"
+            >
+              {shortAddress(CONTRACTS.fanovoToken)}
+            </a>
+            {" "}• X Layer Mainnet • 2026
+          </span>
           <div className="flex gap-4">
             <a href="https://x.com/FanovoX" className="hover:text-white">X / Twitter</a>
-            <a href="https://www.okx.com/web3/explorer/xlayer-test" className="hover:text-white">Explorer</a>
+            <a href="https://www.okx.com/web3/explorer/xlayer" className="hover:text-white">Explorer</a>
           </div>
         </footer>
       </main>

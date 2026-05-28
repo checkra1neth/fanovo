@@ -42,3 +42,6 @@ __pycache__/
 *~
 .vercel
 .env*.local
+
+# Next.js build output
+.next/

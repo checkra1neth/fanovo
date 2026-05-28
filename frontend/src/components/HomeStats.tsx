@@ -1,9 +1,11 @@
 "use client";
 
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContract } from "wagmi";
 import { formatEther } from "viem";
-import { CONTRACTS, COUNTRIES } from "@/lib/contracts";
+import { CONTRACTS, shortAddress } from "@/lib/contracts";
+import { explorerAddressUrl } from "@/lib/wagmi";
 import { packOpenerAbi, fanovoTokenAbi, worldCupHookAbi } from "@/lib/abi";
+import { useCountryTokens, useCountryCurves } from "@/lib/useFanovoData";
 
 export function HomeStatsBar() {
   const { data: totalSupply } = useReadContract({
@@ -30,39 +32,20 @@ export function HomeStatsBar() {
     functionName: "VIRTUAL_FANOVO",
   });
 
-  // Read all curve states for real TVL
-  const { data: tokenAddresses } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.worldCupHook,
-      abi: worldCupHookAbi,
-      functionName: "getCountryToken" as const,
-      args: [country.id] as const,
-    })),
-  });
-
-  const { data: curveStates } = useReadContracts({
-    contracts: tokenAddresses
-      ? tokenAddresses.map((t) => ({
-          address: CONTRACTS.worldCupHook,
-          abi: worldCupHookAbi,
-          functionName: "getCurveState" as const,
-          args: [(t.result as `0x${string}`) || "0x0000000000000000000000000000000000000000"] as const,
-        }))
-      : [],
-  });
+  // Read all curve states for real TVL (shared with Markets/Tokenomics through queryClient)
+  const { addresses: tokenAddresses } = useCountryTokens();
+  const { states: curveStates } = useCountryCurves(tokenAddresses);
 
   const supply = totalSupply ? Number(formatEther(totalSupply as bigint)) : 0;
   const max = maxSupply ? Number(formatEther(maxSupply as bigint)) : 0;
   const packs = packsOpened ? Number(packsOpened) : 0;
   const asymptote = virtualFanovo ? Number(formatEther(virtualFanovo as bigint)) : 0;
 
-  const countryTvl = curveStates
-    ? curveStates.reduce((sum, s) => {
-        if (!s.result) return sum;
-        const [realFanovo] = s.result as [bigint, bigint, boolean];
-        return sum + Number(formatEther(realFanovo));
-      }, 0)
-    : 0;
+  const countryTvl = curveStates.reduce((sum, s) => {
+    if (!s) return sum;
+    const [realFanovo] = s;
+    return sum + Number(formatEther(realFanovo));
+  }, 0);
 
   return (
     <>
@@ -78,9 +61,16 @@ export function HomeStatsBar() {
         <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-xs">
           <div>
             <span className="text-[#555]">FANOVO CONTRACT </span>
-            <span className="font-mono text-[#888]">TBD</span>
+            <a
+              href={explorerAddressUrl(CONTRACTS.fanovoToken)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-[#888] hover:text-white"
+            >
+              {shortAddress(CONTRACTS.fanovoToken)}
+            </a>
           </div>
-          <span className="text-[#555]">X Layer Testnet • ERC-20 • {max > 0 ? `${(max / 1000).toFixed(0)}K` : "—"} fixed supply</span>
+          <span className="text-[#555]">X Layer Mainnet • ERC-20 • {max > 0 ? `${(max / 1000).toFixed(0)}K` : "—"} fixed supply</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-6 mt-4">

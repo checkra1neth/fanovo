@@ -5,7 +5,8 @@ import { useReadContracts, useAccount, useWriteContract, useWaitForTransactionRe
 import { formatEther, parseEther } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import { CONTRACTS, COUNTRIES, getFlagUrl } from "@/lib/contracts";
-import { packOpenerAbi, predictionMarketHubAbi, fanovoTokenAbi } from "@/lib/abi";
+import { predictionMarketHubAbi, fanovoTokenAbi } from "@/lib/abi";
+import { useCountryPrices } from "@/lib/useFanovoData";
 
 const MATCHES = [
   // MATCHDAY 1
@@ -95,14 +96,8 @@ export function Predict() {
 
   const matchId = selectedMatch ? MATCHES.indexOf(selectedMatch) + 1 : 0;
 
-  const { data: prices } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.packOpener,
-      abi: packOpenerAbi,
-      functionName: "getPrice" as const,
-      args: [BigInt(country.id)] as const,
-    })),
-  });
+  // Country prices (shared cache).
+  const { prices } = useCountryPrices();
 
   // Read on-chain match data
   const { data: chainMatch } = useReadContracts({
@@ -168,7 +163,7 @@ export function Predict() {
   const hasClaimed = userClaimed?.[0]?.result as boolean || false;
 
   const getPrice = (id: number) => {
-    const p = prices?.[id]?.result;
+    const p = prices[id];
     return p ? Number(formatEther(p as bigint)) : 0;
   };
 

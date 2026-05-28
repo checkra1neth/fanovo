@@ -33,6 +33,12 @@ export const CONTRACTS = {
 
 } as const;
 
+// Short address helper, e.g. 0xe81d…b131
+export function shortAddress(addr: string, head = 4, tail = 4): string {
+  if (!addr || addr.length < head + tail + 2) return addr;
+  return `${addr.slice(0, 2 + head)}…${addr.slice(-tail)}`;
+}
+
 // Players data (144 players - 3 per country, matching on-chain order — PITCH canonical order)
 export const PLAYERS = [
   { countryId: 0, name: "Christian Pulisic", role: 1 as const, position: "FW", symbol: "PULISIC" },

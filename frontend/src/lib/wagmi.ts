@@ -1,7 +1,7 @@
 import { http, createConfig } from "wagmi";
 import { defineChain } from "viem";
 
-export const xlayerTestnet = defineChain({
+export const xlayer = defineChain({
   id: 196,
   name: "X Layer",
   nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
@@ -13,9 +13,14 @@ export const xlayerTestnet = defineChain({
   },
 });
 
+// Block explorer URL for an address on X Layer Mainnet.
+export function explorerAddressUrl(address: string): string {
+  return `https://www.okx.com/web3/explorer/xlayer/address/${address}`;
+}
+
 export const config = createConfig({
-  chains: [xlayerTestnet],
+  chains: [xlayer],
   transports: {
-    [xlayerTestnet.id]: http(),
+    [xlayer.id]: http(),
   },
 });

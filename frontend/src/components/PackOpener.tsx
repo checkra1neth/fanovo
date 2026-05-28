@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useBlockNumber } from "wagmi";
 import { formatEther, parseEther, decodeEventLog } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import { CONTRACTS, COUNTRIES, getFlagUrl } from "@/lib/contracts";
-import { packOpenerAbi, worldCupHookAbi, fanovoTokenAbi } from "@/lib/abi";
+import { packOpenerAbi, fanovoTokenAbi } from "@/lib/abi";
+import { useCountryTokens } from "@/lib/useFanovoData";
 
 export function PackOpener() {
   const { address, isConnected } = useAccount();
@@ -413,25 +414,24 @@ function Holdings({ refreshKey }: { refreshKey?: string }) {
     }
   }, [refreshKey, queryClient]);
 
-  const { data: tokenAddresses } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.worldCupHook,
-      abi: worldCupHookAbi,
-      functionName: "getCountryToken" as const,
-      args: [country.id] as const,
-    })),
-  });
+  const { addresses: tokenAddresses } = useCountryTokens();
 
-  const { data: balances } = useReadContracts({
-    contracts: tokenAddresses
-      ? tokenAddresses.map((t) => ({
-          address: (t.result as `0x${string}`) || "0x0000000000000000000000000000000000000000",
-          abi: fanovoTokenAbi,
-          functionName: "balanceOf" as const,
-          args: [address || "0x0000000000000000000000000000000000000000"] as const,
-        }))
-      : [],
-  });
+  const balanceContracts = useMemo(
+    () =>
+      tokenAddresses.map((addr) => ({
+        address:
+          (addr as `0x${string}` | undefined) ||
+          ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        abi: fanovoTokenAbi,
+        functionName: "balanceOf" as const,
+        args: [
+          (address as `0x${string}` | undefined) ||
+            ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        ] as const,
+      })),
+    [tokenAddresses, address]
+  );
+  const { data: balances } = useReadContracts({ contracts: balanceContracts });
 
   if (!isConnected) return null;
 

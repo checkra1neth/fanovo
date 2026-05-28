@@ -3,45 +3,46 @@
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { formatEther } from "viem";
 import { CONTRACTS, COUNTRIES, PLAYERS, getFlagUrl } from "@/lib/contracts";
-import { packOpenerAbi, worldCupHookAbi, fanovoTokenAbi, playerHookAbi } from "@/lib/abi";
+import { packOpenerAbi, fanovoTokenAbi, playerHookAbi } from "@/lib/abi";
+import {
+  useCountryTokens,
+  useCountryPrices,
+  usePlayerTokens,
+  usePlayerPacksByCountry,
+  useCountryPhase2,
+} from "@/lib/useFanovoData";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export function Portfolio() {
   const { address, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState<"countries" | "players">("countries");
 
-  // Read player token addresses via allPlayers
-  const { data: playerTokenAddresses } = useReadContracts({
-    contracts: PLAYERS.map((player) => ({
-      address: CONTRACTS.playerHook,
-      abi: playerHookAbi,
-      functionName: "allPlayers" as const,
-      args: [BigInt(player.countryId * 3 + player.role)] as const,
-    })),
-  });
+  // Player token addresses (shared cache).
+  const { addresses: playerTokenAddresses } = usePlayerTokens();
 
-  // Read player token balances
+  // Read player token balances. Stable, address-bound contracts array.
+  const playerBalanceContracts = useMemo(
+    () =>
+      playerTokenAddresses.map((addr) => ({
+        address:
+          (addr as `0x${string}` | undefined) ||
+          ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        abi: fanovoTokenAbi,
+        functionName: "balanceOf" as const,
+        args: [
+          (address as `0x${string}` | undefined) ||
+            ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        ] as const,
+      })),
+    [playerTokenAddresses, address]
+  );
   const { data: playerBalances } = useReadContracts({
-    contracts: playerTokenAddresses
-      ? playerTokenAddresses.map((t) => ({
-          address: (t.result as `0x${string}`) || "0x0000000000000000000000000000000000000000",
-          abi: fanovoTokenAbi,
-          functionName: "balanceOf" as const,
-          args: [address || "0x0000000000000000000000000000000000000000"] as const,
-        }))
-      : [],
+    contracts: playerBalanceContracts,
   });
 
-  // Read phase2 status for all countries
-  const { data: phase2CountriesData } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.playerHook,
-      abi: playerHookAbi,
-      functionName: "phase2ByCountry" as const,
-      args: [country.id] as const,
-    })),
-  });
+  // Phase2 status (shared).
+  const { flags: phase2Flags } = useCountryPhase2();
 
   const { data: fanovoBalance } = useReadContract({
     address: CONTRACTS.fanovoToken,
@@ -56,47 +57,28 @@ export function Portfolio() {
     functionName: "totalPacksOpened",
   });
 
-  // Read all country token addresses
-  const { data: tokenAddresses } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.worldCupHook,
-      abi: worldCupHookAbi,
-      functionName: "getCountryToken" as const,
-      args: [country.id] as const,
-    })),
-  });
+  // Country tokens, prices, player packs (all shared cache).
+  const { addresses: tokenAddresses } = useCountryTokens();
+  const { prices } = useCountryPrices();
+  const { counts: playerPackCounts } = usePlayerPacksByCountry();
 
-  // Read balances
-  const { data: balances } = useReadContracts({
-    contracts: tokenAddresses
-      ? tokenAddresses.map((t) => ({
-          address: (t.result as `0x${string}`) || "0x0000000000000000000000000000000000000000",
-          abi: fanovoTokenAbi,
-          functionName: "balanceOf" as const,
-          args: [address || "0x0000000000000000000000000000000000000000"] as const,
-        }))
-      : [],
-  });
-
-  // Read prices via PackOpener
-  const { data: prices } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.packOpener,
-      abi: packOpenerAbi,
-      functionName: "getPrice" as const,
-      args: [BigInt(country.id)] as const,
-    })),
-  });
-
-  // Read player packs opened per country
-  const { data: playerPacksData } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.playerHook,
-      abi: playerHookAbi,
-      functionName: "packsByCountry" as const,
-      args: [country.id] as const,
-    })),
-  });
+  // Country token balances per user — bound to user, so we keep this local.
+  const balanceContracts = useMemo(
+    () =>
+      tokenAddresses.map((addr) => ({
+        address:
+          (addr as `0x${string}` | undefined) ||
+          ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        abi: fanovoTokenAbi,
+        functionName: "balanceOf" as const,
+        args: [
+          (address as `0x${string}` | undefined) ||
+            ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+        ] as const,
+      })),
+    [tokenAddresses, address]
+  );
+  const { data: balances } = useReadContracts({ contracts: balanceContracts });
 
   if (!isConnected) {
     return (
@@ -111,7 +93,7 @@ export function Portfolio() {
   const holdings = COUNTRIES.map((country, i) => {
     const balance = balances?.[i]?.result;
     const amount = balance ? Number(formatEther(balance as bigint)) : 0;
-    const price = prices?.[i]?.result ? Number(formatEther(prices[i].result as bigint)) : 0;
+    const price = prices[i] ? Number(formatEther(prices[i] as bigint)) : 0;
     const value = amount * price;
     return { ...country, amount, price, value };
   });
@@ -249,7 +231,7 @@ export function Portfolio() {
             const playerHoldings = PLAYERS.map((player, i) => {
               const balance = playerBalances?.[i]?.result;
               const amount = balance ? Number(formatEther(balance as bigint)) : 0;
-              const phase2 = phase2CountriesData?.[player.countryId]?.result ? Boolean(phase2CountriesData[player.countryId].result) : false;
+              const phase2 = phase2Flags[player.countryId] ?? false;
               return { ...player, amount, phase2 };
             });
             const ownedPlayers = playerHoldings.filter((p) => p.amount > 0);
@@ -265,14 +247,14 @@ export function Portfolio() {
                   <div className="card p-5">
                     <p className="text-[10px] text-[#555] uppercase tracking-wider mb-1">Countries Active</p>
                     <p className="text-2xl font-bold font-mono">
-                      {phase2CountriesData?.filter((d) => Boolean(d.result)).length || 0}
+                      {phase2Flags.filter(Boolean).length}
                     </p>
                     <p className="text-xs text-[#555]">of 48 in Phase 2</p>
                   </div>
                   <div className="card p-5">
                     <p className="text-[10px] text-[#555] uppercase tracking-wider mb-1">Packs Opened</p>
                     <p className="text-2xl font-bold font-mono">
-                      {playerPacksData?.reduce((sum, d) => sum + (d.result ? Number(d.result) : 0), 0) || 0}
+                      {playerPackCounts.reduce((sum, n) => sum + n, 0)}
                     </p>
                     <p className="text-xs text-[#555]">player packs</p>
                   </div>

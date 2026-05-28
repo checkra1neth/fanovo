@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useSwitchChain } from "wagmi";
-import { xlayerTestnet } from "@/lib/wagmi";
+import { xlayer } from "@/lib/wagmi";
 
 export function NetworkGuard({ children }: { children: React.ReactNode }) {
   const { isConnected, chainId } = useAccount();
@@ -9,7 +9,7 @@ export function NetworkGuard({ children }: { children: React.ReactNode }) {
 
   if (!isConnected) return <>{children}</>;
 
-  if (chainId && chainId !== xlayerTestnet.id) {
+  if (chainId && chainId !== xlayer.id) {
     return (
       <>
         {children}
@@ -21,7 +21,7 @@ export function NetworkGuard({ children }: { children: React.ReactNode }) {
               Please switch to X Layer Mainnet to use this app.
             </p>
             <button
-              onClick={() => switchChain({ chainId: xlayerTestnet.id })}
+              onClick={() => switchChain({ chainId: xlayer.id })}
               disabled={isPending}
               className="btn-primary w-full"
             >

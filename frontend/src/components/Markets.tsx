@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContract } from "wagmi";
 import { formatEther } from "viem";
 import { CONTRACTS, COUNTRIES, PLAYERS, getFlagUrl } from "@/lib/contracts";
-import { packOpenerAbi, worldCupHookAbi, fanovoTokenAbi } from "@/lib/abi";
+import { fanovoTokenAbi } from "@/lib/abi";
+import {
+  useCountryTokens,
+  useCountryCurves,
+  useCountryPrices,
+} from "@/lib/useFanovoData";
 import Link from "next/link";
 
 export function Markets() {
@@ -21,45 +26,20 @@ export function Markets() {
     functionName: "totalSupply",
   });
 
-  // Read prices via PackOpener
-  const { data: prices } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.packOpener,
-      abi: packOpenerAbi,
-      functionName: "getPrice" as const,
-      args: [BigInt(country.id)] as const,
-    })),
-  });
+  // Read prices via PackOpener (shared cache)
+  const { prices } = useCountryPrices();
 
-  // Read country token addresses
-  const { data: tokenAddresses } = useReadContracts({
-    contracts: COUNTRIES.map((country) => ({
-      address: CONTRACTS.worldCupHook,
-      abi: worldCupHookAbi,
-      functionName: "getCountryToken" as const,
-      args: [BigInt(country.id)] as const,
-    })),
-  });
+  // Read country token addresses (shared cache)
+  const { addresses: tokenAddresses } = useCountryTokens();
 
-  // Read curve state for each country
-  const { data: curveStates } = useReadContracts({
-    contracts: tokenAddresses
-      ? tokenAddresses.map((t) => ({
-          address: CONTRACTS.worldCupHook,
-          abi: worldCupHookAbi,
-          functionName: "getCurveState" as const,
-          args: [(t.result as `0x${string}`) || "0x0000000000000000000000000000000000000000"] as const,
-        }))
-      : [],
-  });
+  // Read curve state for each country (shared cache)
+  const { states: curveStates } = useCountryCurves(tokenAddresses);
 
   const PACKS_THRESHOLD = 450;
 
   const countriesWithData = COUNTRIES.map((country, i) => {
-    const price = prices?.[i]?.result
-      ? Number(formatEther(prices[i].result as bigint))
-      : 0;
-    const curveData = curveStates?.[i]?.result as [bigint, bigint, boolean] | undefined;
+    const price = prices[i] ? Number(formatEther(prices[i] as bigint)) : 0;
+    const curveData = curveStates[i];
     const tvl = curveData ? Number(formatEther(curveData[0])) : 0;
     const supply = curveData ? Number(formatEther(curveData[1])) : 0;
     const marketCap = price * supply;
