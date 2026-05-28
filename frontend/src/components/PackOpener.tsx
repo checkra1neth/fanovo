@@ -12,7 +12,7 @@ export function PackOpener() {
   const [revealedCountries, setRevealedCountries] = useState<number[]>([]);
   const [packCount, setPackCount] = useState(1);
 
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: blockNumber } = useBlockNumber({ watch: true, query: { refetchInterval: 15_000 } });
 
   const { data: fanovoBalance } = useReadContract({
     address: CONTRACTS.fanovoToken,
