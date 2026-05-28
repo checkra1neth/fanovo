@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: __dirname,
+  async rewrites() {
+    return [
+      {
+        source: "/api/rpc",
+        destination: "https://rpc.xlayer.tech/",
+      },
+    ];
   },
 };
 
