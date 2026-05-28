@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![X Layer](https://img.shields.io/badge/X%20Layer-Chain%20196-000000)](https://www.okx.com/xlayer)
 
-> A Uniswap v4 hooks-based prediction market and fantasy sports protocol built on X Layer for the PITCH World Cup.
+> A Uniswap v4 hooks-based prediction market and fantasy sports protocol built on X Layer for the World Cup.
 
 ---
 
@@ -341,5 +341,5 @@ This project is licensed under the MIT License.
 ---
 
 <p align="center">
-  Built with ❤️ for the PITCH World Cup
+  Built with ❤️ for the World Cup
 </p>
