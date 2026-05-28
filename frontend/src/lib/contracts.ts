@@ -4,24 +4,24 @@ export const CONTRACTS = {
   fanovoToken: "0xe81de3d4db134d2E722Bc4A2E4f07e4A4231b131" as `0x${string}`,
 
   // Hooks
-  worldCupHook: "0x3E5bb4D77Fd54A9b3417d2119410A2D15167eaa8" as `0x${string}`,
-  playerHook: "0x65b705ed083F54562d81DCdd3510EB986A592AA8" as `0x${string}`,
+  worldCupHook: "0x77f375dc878c4d0416A9D0A6CC603b3F202b6AA8" as `0x${string}`,
+  playerHook: "0xC8cA12C106F4aBa993F9b513CF0f2ea68E76eaa8" as `0x${string}`,
 
   // Factories
-  countryFactory: "0x211cd8002090DC1A96609E48Ff2bF934C3fA729F" as `0x${string}`,
-  playerFactory: "0xaf6b5a193d1743E10723864169700b36EC7a506F" as `0x${string}`,
+  countryFactory: "0xFb0C0feeCF70Aa4A632eDBbAf8FD4db722d128b3" as `0x${string}`,
+  playerFactory: "0x1620cdadc2b298400eB4622606E7633A8DbBeBbF" as `0x${string}`,
 
   // Pack Openers
-  packOpener: "0x77d413eFeB04f818E2d6435d91f63cd180213d44" as `0x${string}`,
-  playerPackOpener: "0x013c7d43F746a68282e9452bB65BBF6aB155831A" as `0x${string}`,
+  packOpener: "0x0F1e733FB0c8934410987cfb12A66a2A42e0BB3B" as `0x${string}`,
+  playerPackOpener: "0x3652C5c395092842680CC547a3cb0AD3e61C3cDc" as `0x${string}`,
 
   // Routers
-  curveRouter: "0x2A1780b5c2e54a918719dE67f5C138003908b8e3" as `0x${string}`,
-  playerRouter: "0x2D19D8fF5518B6809f25dC062FE763709eAd33b1" as `0x${string}`,
+  curveRouter: "0x28409b0A0162eAA90F78C00D8bB6625599934178" as `0x${string}`,
+  playerRouter: "0xAC2d4135d64E175a6c35b26Fe11203595fAE1E1A" as `0x${string}`,
 
   // Market & Game
-  predictionMarketHub: "0x3aFf12bc0a69f82CF91452E03E8B8c13349cc7f7" as `0x${string}`,
-  lineupsGame: "0x0D1b651350bF9A84D491D7735496C3d572A6867D" as `0x${string}`,
+  predictionMarketHub: "0xF5E7617a81D3c3E4cE81caa6d166220E47ffB557" as `0x${string}`,
+  lineupsGame: "0x57a74De5fa7Ae5f6aE23E0AA6c9eE187246e7c2b" as `0x${string}`,
 
   // Sale & Treasury
   fanovoSale: "0x492FcadaA3a959d162f585783D7671c0F61523cD" as `0x${string}`,

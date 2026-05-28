@@ -117,14 +117,17 @@ contract PackOpener is ReentrancyGuard {
     }
 
     /// @notice Reveal packs and mint country tokens
-    /// @dev Must be called after DELAY_BLOCKS from commit
+    /// @dev Must be called after DELAY_BLOCKS from commit.
+    ///      Clears the commit slot on success so the user may commit again.
     function reveal() external nonReentrant {
-        Commit storage c = commits[msg.sender];
+        Commit memory c = commits[msg.sender];
         if (!c.exists) revert CommitNotFound();
         if (c.revealed) revert AlreadyRevealed();
         if (block.number < c.revealBlock) revert TooEarly();
 
-        c.revealed = true;
+        // Clear commit slot — user can open new packs after a successful reveal
+        delete commits[msg.sender];
+
         uint8 count = c.count;
         uint256 numCountries = factory.countriesLength();
 

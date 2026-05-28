@@ -26,6 +26,9 @@
 # Foundry broadcast logs (deployment artifacts)
 /contracts/broadcast/
 
+# Deployment scripts and refresh helpers (local-only)
+/contracts/script/
+
 # Python cache
 __pycache__/
 *.pyc

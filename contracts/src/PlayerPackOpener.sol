@@ -114,14 +114,17 @@ contract PlayerPackOpener is ReentrancyGuard {
     }
 
     /// @notice Reveal committed packs and mint random players
-    /// @dev Can only be called after revealBlock has passed
+    /// @dev Can only be called after revealBlock has passed.
+    ///      Clears the commit slot on success so the user may commit again for this country.
     function revealPlayerPacks(uint8 countryIndex) external nonReentrant {
-        Commit storage comm = commits[msg.sender][countryIndex];
+        Commit memory comm = commits[msg.sender][countryIndex];
         if (!comm.exists) revert CommitNotFound();
         if (comm.revealed) revert AlreadyRevealed();
         if (block.number < comm.revealBlock) revert TooEarly();
 
-        comm.revealed = true;
+        // Clear commit slot — user can commit again for this country after reveal
+        delete commits[msg.sender][countryIndex];
+
         uint8 count = comm.count;
 
         // Generate randomness from blockhash at revealBlock
