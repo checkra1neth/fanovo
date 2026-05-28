@@ -1,0 +1,36 @@
+/.DS_Store
+.vscode/
+.idea/
+
+# AI agent configs
+.agents/
+.kiro/
+
+# Duplicate forge-std (contracts/lib/forge-std is the canonical one)
+/lib/forge-std/
+
+# Archive — old code not meant for production
+/archive/
+
+# Video assets and generated caches
+/videos/
+
+# Documentation files (keep only README.md)
+/plan.md
+/pitch-analysis.md
+/hackathon-hook.md
+/hackathon-xcup.md
+/PITCH_DATA.md
+/skills-lock.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Temporary files
+*.swp
+*.swo
+*~

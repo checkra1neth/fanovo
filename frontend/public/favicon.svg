@@ -1,0 +1,39 @@
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded slate teal backing card with subtle metal rim -->
+  <rect x="2" y="2" width="116" height="116" rx="24" fill="#0D1D25" stroke="rgba(198, 198, 208, 0.12)" stroke-width="1.5" />
+  
+  <!-- Group holding the geometric letter "F" elements, centered -->
+  <g transform="translate(6, 2)">
+    <!-- 1. The Concentric Curved Arcs (Top-Left corner bending to Top-Right) -->
+    <!-- Outer Arc Track -->
+    <path d="M 38 88 L 38 46 C 38 28 50 16 68 16 L 82 16" stroke="#C6C6D0" stroke-width="6" stroke-linecap="square" />
+    
+    <!-- Middle Arc Track -->
+    <path d="M 47 88 L 47 50 C 47 38 55 25 68 25 L 78 25" stroke="#9EA3AF" stroke-width="5.5" stroke-linecap="square" />
+    
+    <!-- Inner Arc Track -->
+    <path d="M 56 88 L 56 54 C 56 46 60 34 68 34" stroke="#7A808E" stroke-width="5" stroke-linecap="square" />
+
+    <!-- 2. The Middle Horizontal Sloped Bars -->
+    <!-- Top Bar -->
+    <path d="M 38 52 L 76 52 L 72 61 L 38 61 Z" fill="#9EA3AF" />
+    <!-- Bottom Bar -->
+    <path d="M 38 66 L 70 66 L 66 75 L 38 75 Z" fill="#7A808E" />
+
+    <!-- 3. Bottom Vertical Pillars -->
+    <!-- Left Pillar -->
+    <path d="M 38 82 L 38 98" stroke="#C6C6D0" stroke-width="6" stroke-linecap="square" />
+    <!-- Right Pillar -->
+    <path d="M 50 82 L 50 98" stroke="#7A808E" stroke-width="6" stroke-linecap="square" />
+
+    <!-- 4. Terracotta / Copper Accent Squares (Exact positions from the reference photo) -->
+    <!-- Top-Right Accent on Outer Loop (ends with sloped edge look) -->
+    <rect x="74" y="13" width="7" height="6" fill="#C0754D" rx="0.5" />
+    
+    <!-- Inner Bend Accent near center -->
+    <rect x="53" y="31" width="6" height="6" fill="#D59D80" rx="0.5" />
+    
+    <!-- Left leg start Accent -->
+    <rect x="47" y="79" width="6" height="6" fill="#B6410F" rx="0.5" />
+  </g>
+</svg>
