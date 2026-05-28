@@ -70,21 +70,15 @@ Fanovo consists of two main token systems connected through Uniswap v4 hooks:
 ```
 tifosy/
 ├── contracts/          # Foundry Solidity project
-│   ├── src/           # Active contracts (17 .sol files)
+│   ├── src/           # Active contracts (15 .sol files)
 │   ├── script/        # Deployment scripts
-│   ├── test/          # Foundry tests
-│   ├── broadcast/     # Deployment transaction logs
-│   └── lib/           # Foundry dependencies
+│   └── test/          # Foundry tests
 ├── frontend/          # Next.js 14+ application
 │   ├── src/
 │   │   ├── app/      # Next.js App Router pages
 │   │   ├── components/ # React components
 │   │   └── lib/      # Utilities, ABIs, contract addresses
 │   └── public/       # Static assets
-├── archive/           # Archived old code
-│   ├── original-pitch/ # Original PITCH protocol contracts
-│   ├── reference/     # Reference implementations
-│   └── scripts/      # One-off deployment scripts
 └── .gitignore        # Git ignore rules
 ```
 
@@ -93,6 +87,13 @@ tifosy/
 ### Contracts
 ```bash
 cd contracts
+
+# Install Foundry dependencies
+forge install foundry-rs/forge-std
+forge install Uniswap/v4-core
+forge install Uniswap/v4-periphery
+
+# Build and test
 forge build
 forge test
 ```

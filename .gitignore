@@ -6,9 +6,6 @@
 .agents/
 .kiro/
 
-# Duplicate forge-std (contracts/lib/forge-std is the canonical one)
-/lib/forge-std/
-
 # Archive — old code not meant for production
 /archive/
 
@@ -22,6 +19,12 @@
 /hackathon-xcup.md
 /PITCH_DATA.md
 /skills-lock.json
+
+# Foundry dependencies (install via `forge install`)
+/contracts/lib/
+
+# Foundry broadcast logs (deployment artifacts)
+/contracts/broadcast/
 
 # Python cache
 __pycache__/
