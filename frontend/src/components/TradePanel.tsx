@@ -113,6 +113,42 @@ export function TradePanel({ countryId }: { countryId: number }) {
     }
   })();
 
+  // Liquidity guard for SELLs.
+  // On-chain _executeSell reverts with InsufficientLiquidity when the gross
+  // FANOVO owed exceeds the curve's real reserves. quoteSell does NOT cap at
+  // reserves, so without this check the UI could offer an unfillable quote.
+  // Max sellable solves grossFifaOut <= realFanovo:
+  //   amountIn * VIRTUAL_FANOVO <= realFanovo * (VIRTUAL_COUNTRY - circulating)
+  const sellLiquidity = (() => {
+    if (side !== "sell" || !curveState || VIRTUAL_FANOVO === 0n || VIRTUAL_COUNTRY === 0n) {
+      return { exceeds: false, maxSellable: 0n };
+    }
+    const realFIFA = curveState[0];
+    const circulating = curveState[1];
+    const vcMinusCirc = VIRTUAL_COUNTRY - circulating;
+    const maxSellable = (realFIFA * vcMinusCirc) / VIRTUAL_FANOVO;
+
+    let exceeds = false;
+    if (amount && Number(amount) > 0) {
+      let amountIn: bigint;
+      try {
+        amountIn = parseEther(amount);
+      } catch {
+        return { exceeds: false, maxSellable };
+      }
+      if (amountIn > circulating) {
+        exceeds = true;
+      } else {
+        const vfPlusRf = VIRTUAL_FANOVO + realFIFA;
+        const grossFifaOut = (vfPlusRf * amountIn) / (vcMinusCirc + amountIn);
+        if (grossFifaOut > realFIFA) exceeds = true;
+      }
+    }
+    return { exceeds, maxSellable };
+  })();
+
+  const maxSellableNum = Number(formatEther(sellLiquidity.maxSellable));
+
   // Read country token supply
   const { data: supply } = useReadContract({
     address: (countryTokenAddr as `0x${string}`) || "0x0000000000000000000000000000000000000000",
@@ -160,6 +196,8 @@ export function TradePanel({ countryId }: { countryId: number }) {
 
   const handleSwap = async () => {
     if (!address || !amount || !countryTokenAddr) return;
+    // Guard: don't submit a sell the curve can't fill (would revert on-chain).
+    if (side === "sell" && sellLiquidity.exceeds) return;
     const amountIn = parseEther(amount);
     const amountOutMin = quoteResult ? (quoteResult as bigint) * 99n / 100n : 0n; // 1% slippage
 
@@ -387,6 +425,25 @@ export function TradePanel({ countryId }: { countryId: number }) {
                 </div>
               </div>
 
+              {/* Liquidity warning for sells the curve can't fill */}
+              {side === "sell" && sellLiquidity.exceeds && (
+                <div className="card p-3 border border-[#ff2d55]/30 bg-[#ff2d55]/[0.06]">
+                  <p className="text-sm text-[#ff2d55] font-medium">Not enough curve liquidity</p>
+                  <p className="text-xs text-[#888] mt-1">
+                    This sell exceeds the FANOVO reserves backing the curve and would revert.
+                    Max sellable right now is about{" "}
+                    <button
+                      type="button"
+                      onClick={() => setAmount(maxSellableNum > 0 ? (maxSellableNum * 0.999).toFixed(4) : "0")}
+                      className="font-mono text-white underline underline-offset-2"
+                    >
+                      {maxSellableNum.toFixed(4)} {country.symbol}
+                    </button>
+                    .
+                  </p>
+                </div>
+              )}
+
               {/* Trade details */}
               <div className="card p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -410,7 +467,13 @@ export function TradePanel({ countryId }: { countryId: number }) {
               {/* Action button */}
               <button
                 onClick={handleSwap}
-                disabled={!isConnected || !amount || Number(amount) <= 0 || txStatus !== "idle"}
+                disabled={
+                  !isConnected ||
+                  !amount ||
+                  Number(amount) <= 0 ||
+                  txStatus !== "idle" ||
+                  (side === "sell" && sellLiquidity.exceeds)
+                }
                 className="btn-primary w-full py-4 text-base"
               >
                 {!isConnected
@@ -425,6 +488,8 @@ export function TradePanel({ countryId }: { countryId: number }) {
                   ? "Error — try again"
                   : !amount || Number(amount) <= 0
                   ? "Enter an amount"
+                  : side === "sell" && sellLiquidity.exceeds
+                  ? "Not enough liquidity"
                   : side === "buy"
                   ? `Buy ${country.symbol}`
                   : `Sell ${country.symbol}`}

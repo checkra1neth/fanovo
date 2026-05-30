@@ -6,6 +6,22 @@ solc = "0.8.28"
 optimizer = true
 optimizer_runs = 200
 via_ir = true
+# Integration tests spin up a real Uniswap V4 PoolManager (pinned to solc 0.8.26).
+# They are excluded from the default profile so prod builds + existing unit tests
+# keep compiling under 0.8.28, byte-identical to what is deployed.
+skip = ["test/integration/**"]
+
+# Run with: FOUNDRY_PROFILE=integration forge test
+# Compiles the whole repo (incl. the real PoolManager) under solc 0.8.26.
+[profile.integration]
+src = "src"
+out = "out-integration"
+libs = ["lib"]
+solc = "0.8.26"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+skip = []
 
 [rpc_endpoints]
 # Add your X Layer RPC endpoint here
